@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zig-Zag Rail Fence Cipher - Encrypt and Decrypt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-container input[type="text"], .form-container input[type="number"], .form-container select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-container button {
+            padding: 10px 20px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #4cae4c;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .result h3 {
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Zig-Zag Rail Fence Cipher</h1>
+    <div class="form-container">
+        <form id="cipher-form">
+            <label for="text">Enter Text:</label>
+            <input type="text" id="text" required placeholder="Enter your text here">
+            
+            <label for="rails">Number of Rails:</label>
+            <input type="number" id="rails" min="2" max="10" required placeholder="Enter number of rails">
+            
+            <label for="mode">Mode:</label>
+            <select id="mode" required>
+                <option value="encrypt">Encrypt</option>
+                <option value="decrypt">Decrypt</option>
+            </select>
+            
+            <button type="submit">Process Text</button>
+        </form>
+    </div>
+
+    <div class="result" id="result" style="display: none;">
+        <h3>Processed Text:</h3>
+        <p id="processed-text"></p>
+    </div>
+</div>
+
+<script>
+    // Zig-Zag Rail Fence Cipher Encryption function
+    function zigZagRailFenceCipher(text, rails) {
+        if (rails === 1) {
+            return text; // If there's only one rail, return the text as is
+        }
+
+        // Create an array to hold the rails
+        let fence = Array.from({ length: rails }, () => []);
+        let currentRail = 0;
+        let direction = 1; // 1 means moving down, -1 means moving up
+        
+        // Fill the fence with characters in a zig-zag manner
+        for (let i = 0; i < text.length; i++) {
+            fence[currentRail].push(text[i]);
+            if (currentRail === 0) {
+                direction = 1; // Going down
+            } else if (currentRail === rails - 1) {
+                direction = -1; // Going up
+            }
+            currentRail += direction;
+        }
+
+        // Concatenate characters from each rail to form the encrypted text
+        return fence.map(row => row.join('')).join('');
+    }
+
+    // Zig-Zag Rail Fence Cipher Decryption function
+    function zigZagRailFenceDecrypt(cipherText, rails) {
+        if (rails === 1) {
+            return cipherText; // If there's only one rail, return the cipher text as is
+        }
+
+        // Create an empty fence to hold placeholders
+        let fence = Array.from({ length: rails }, () => Array(cipherText.length).fill(''));
+        let currentRail = 0;
+        let direction = 1; // 1 means moving down, -1 means moving up
+        let index = 0;
+
+        // Mark the positions of the cipherText in the zigzag pattern
+        for (let i = 0; i < cipherText.length; i++) {
+            fence[currentRail][i] = '*'; // Placeholder for where the character will go
+            if (currentRail === 0) {
+                direction = 1;
+            } else if (currentRail === rails - 1) {
+                direction = -1;
+            }
+            currentRail += direction;
+        }
+
+        // Place the cipher text characters into the fence
+        let cipherTextIndex = 0;
+        for (let row = 0; row < rails; row++) {
+            for (let col = 0; col < cipherText.length; col++) {
+                if (fence[row][col] === '*') {
+                    fence[row][col] = cipherText[cipherTextIndex++];
+                }
+            }
+        }
+
+        // Read the fence row by row to get the decrypted message
+        let decryptedText = '';
+        for (let col = 0; col < cipherText.length; col++) {
+            for (let row = 0; row < rails; row++) {
+                if (fence[row][col] !== '') {
+                    decryptedText += fence[row][col];
+                }
+            }
+        }
+
+        return decryptedText;
+    }
+
+    // Handle form submission and process the text
+    document.getElementById('cipher-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form submission
+        
+        let text = document.getElementById('text').value;
+        let rails = parseInt(document.getElementById('rails').value);
+        let mode = document.getElementById('mode').value;
+        
+        // Check if inputs are valid
+        if (text && rails >= 2 && rails <= 10) {
+            let processedText;
+            if (mode === 'encrypt') {
+                processedText = zigZagRailFenceCipher(text, rails);
+            } else if (mode === 'decrypt') {
+                processedText = zigZagRailFenceDecrypt(text, rails);
+            }
+            
+            document.getElementById('processed-text').textContent = processedText;
+            document.getElementById('result').style.display = 'block';
+        } else {
+            alert('Please enter valid text and rails (between 2 and 10).');
+        }
+    });
+</script>
+
+</body>
+</html>
